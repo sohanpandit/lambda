@@ -9,7 +9,7 @@ on:
 jobs:
   deployUserInfo:
     runs-on: ubuntu-latest
-    if: ${{ contains(github.event.push.paths, 'src/user-info/') }}  # Condition to run this job if 'user-info' folder is changed
+    if: contains(github.event.push.paths, 'src/user-info/')  # Condition to run this job if 'user-info' folder is changed
 
     steps:
     - uses: actions/checkout@v3
