@@ -5,9 +5,15 @@ on:
     branches: [ main ]
     paths:
       - 'src/user-info/**'
+      
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/lambda-profile/**'
 jobs:
-  deploy:
+  deployUserInfo:
     runs-on: ubuntu-latest
+    if: github.event.push.paths | contains('src/user-info/**')  # Condition to run this job if 'user-info' folder is changed
 
     steps:
     - uses: actions/checkout@v3
@@ -46,16 +52,10 @@ jobs:
         aws lambda update-function-code \
           --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
           --zip-file fileb://code.zip
-          
-          
-on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/lambda-profile/**'
-jobs:
-  deploy:
+
+  deployLambdaProfile:
     runs-on: ubuntu-latest
+    if: github.event.push.paths | contains('src/lambda-profile/**')  # Condition to run this job if 'lambda-profile' folder is changed
 
     steps:
     - uses: actions/checkout@v3
