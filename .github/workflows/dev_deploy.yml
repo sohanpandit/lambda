@@ -51,7 +51,7 @@ jobs:
 
   deployLambdaProfile:
     runs-on: ubuntu-latest
-    if: ${{ contains(github.event.push.paths, 'src/lambda-profile/') }}  # Condition to run this job if 'lambda-profile' folder is changed
+    if: contains(github.event.push.paths, 'src/lambda-profile/')  # Condition to run this job if 'lambda-profile' folder is changedd
 
     steps:
     - uses: actions/checkout@v3
