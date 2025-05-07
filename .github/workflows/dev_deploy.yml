@@ -4,8 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'src/user-info/**'
-      
+      - 'src/user-info/**'      
   push:
     branches: [ main ]
     paths:
