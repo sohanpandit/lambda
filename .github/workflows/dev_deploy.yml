@@ -9,7 +9,7 @@ on:
 jobs:
   deployUserInfo:
     runs-on: ubuntu-latest
-    if: contains(github.event.push.paths, 'user-info')  # Condition to run this job if 'user-info' folder is changed
+    if: (github.event_name == 'push' && contains(toJSON(github.event.head_commit.modified), 'src/user-info/'))  # Condition to run this job if 'user-info' folder is changed
 
     steps:
     - uses: actions/checkout@v3
@@ -51,7 +51,7 @@ jobs:
 
   deployLambdaProfile:
     runs-on: ubuntu-latest
-    if: contains(github.event.push.paths, 'lambda-profile')  # Condition to run this job if 'lambda-profile' folder is changed
+    if: (github.event_name == 'push' && contains(toJSON(github.event.head_commit.modified), 'src/lambda-profile/'))  # Condition to run this job if 'lambda-profile' folder is changed
 
     steps:
     - uses: actions/checkout@v3
