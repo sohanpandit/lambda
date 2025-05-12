@@ -9,7 +9,7 @@ on:
 jobs:
   deployUserInfo:
     runs-on: ubuntu-latest
-    if: contains(github.action.push.paths, 'user-info')  # Condition to run this job if 'user-info' folder is changed
+
 
     steps:
     - uses: actions/checkout@v3
@@ -49,9 +49,14 @@ jobs:
           --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
           --zip-file fileb://code.zip
 
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/lambda-profile/**'
   deployLambdaProfile:
     runs-on: ubuntu-latest
-    if: contains(github.action.push.paths, 'lambda-profile')  # Condition to run this job if 'user-info' folder is changed
 
     steps:
     - uses: actions/checkout@v3
