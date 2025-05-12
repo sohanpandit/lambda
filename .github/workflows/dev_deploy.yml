@@ -6,28 +6,13 @@ on:
     paths:
       - 'src/user-info/**'
       - 'src/lambda-profile/**'
+
 jobs:
   deployUserInfo:
+    if: contains(github.event.head_commit.modified, 'src/user-info/')
     runs-on: ubuntu-latest
-
-
     steps:
     - uses: actions/checkout@v3
-
-    # - name: Setup Node.js
-    #   uses: actions/setup-node@v3
-    #   with:
-    #     node-version: '18'
-
-    # - name: Install dependencies
-    #   run: npm install
-
-    #  - name: Run tests
-    #    run: npm test
-
-    # - name: Build
-    #   run: npm run build
-
     - name: Install zip tool
       uses: montudor/action-zip@v1
       
@@ -46,35 +31,14 @@ jobs:
     - name: Deploy to Lambda
       run: |
         aws lambda update-function-code \
-          --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-          --zip-file fileb://code.zip
+          --function-name ${{ secrets.USER_INFO_LAMBDA_NAME }} \
+          --zip-file fileb://user-info.zip
 
-
-on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/lambda-profile/**'
   deployLambdaProfile:
+    if: contains(github.event.head_commit.modified, 'src/lambda-profile/')
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
-
-    # - name: Setup Node.js
-    #   uses: actions/setup-node@v3
-    #   with:
-    #     node-version: '18'
-
-    # - name: Install dependencies
-    #   run: npm install
-
-    #  - name: Run tests
-    #    run: npm test
-
-    # - name: Build
-    #   run: npm run build
-
     - name: Install zip tool
       uses: montudor/action-zip@v1
       
@@ -93,5 +57,5 @@ on:
     - name: Deploy to Lambda
       run: |
         aws lambda update-function-code \
-          --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-          --zip-file fileb://code.zip
+          --function-name ${{ secrets.LAMBDA_PROFILE_NAME }} \
+          --zip-file fileb://lambda-profile.zip
