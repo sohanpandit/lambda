@@ -8,8 +8,25 @@ on:
       - 'src/lambda-profile/**'
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      userInfo: ${{ steps.filter.outputs.user-info }}
+      lambdaProfile: ${{ steps.filter.outputs.lambda-profile }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          user-info:
+            - 'src/user-info/**'
+          lambda-profile:
+            - 'src/lambda-profile/**'
+
   deployUserInfo:
-    if: contains(github.event.head_commit.modified, 'src/user-info/') == true
+    needs: changes
+    if: ${{ needs.changes.outputs.userInfo == 'true' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -35,7 +52,8 @@ jobs:
           --zip-file fileb://user-info.zip
 
   deployLambdaProfile:
-    if: contains(github.event.head_commit.modified, 'src/lambda-profile/') == true
+    needs: changes
+    if: ${{ needs.changes.outputs.lambdaProfile == 'true' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
