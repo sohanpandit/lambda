@@ -26,35 +26,21 @@ jobs:
         with:
           base: ${{ github.event.before }}
           filters: ./filters.yml
+      - name: Export dorny outputs to JSON
+        run: |
+          echo '${{ toJSON(steps.filter.outputs) }}' > filter-outputs.json
+          cat filter-outputs.json
 
-      - name: Export filtered matrix
+      - name: Create filtered matrix from dev_matrix.json
         id: export
         run: |
-          echo "{" > matrix.json
-          echo '"matrix": [' >> matrix.json
-      
-          # Export all filters from steps.filter.outputs to env vars
-          for key in matrix ; do
-            env_key="FILTER_$(echo "$key" | tr '[:lower:]-' '[:upper:]_')"
-            value="${ steps.filter.outputs.env_key }"
-            export "$env_key=$value"
-          done
-      
-          jq -c '.[]' .github/dev_matrix.json | while read lambda; do
-            name=$(echo "$lambda" | jq -r '.name')
-            env_key="FILTER_$(echo "$name" | tr '[:lower:]-' '[:upper:]_')"
-            match="${!env_key}"
-            if [[ "$match" == "true" ]]; then
-              echo "$lambda," >> matrix.json
-            fi
-          done
-      
-          # Remove trailing comma
-          sed -i '$ s/,$//' matrix.json
-          echo "]}" >> matrix.json
-      
-          echo "matrixJson=$(jq -c '.matrix' matrix.json)" >> $GITHUB_OUTPUT
-          jq -c '.matrix' matrix.json
+          matrix_json=$(jq -c --slurpfile outputs filter-outputs.json '
+            def has_changed($outputs): 
+              ($outputs[0] | with_entries(select(.value == "true")) | keys_unsorted) // [];
+            [.[] | select(.name as $n | has_changed($outputs) | index($n))] // []' .github/dev_matrix.json)
+          
+          echo "$matrix_json" > matrix.json
+          echo "matrixJson=$matrix_json" >> $GITHUB_OUTPUT
 
   deploy:
     needs: filter
