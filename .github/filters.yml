@@ -1,0 +1,5 @@
+filters:
+  user-info:
+    - src/user-info/**
+  hcp-profile:
+    - src/hcp-profile/**

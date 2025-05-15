@@ -1,0 +1,3 @@
+filters:
+  user-info:
+    - src/user-info/**

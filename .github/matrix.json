@@ -1,10 +1,13 @@
 [
-  {
-    "name": "user-info",
-    "path": "src/user-info/**"
-  },
-  {
-    "name": "lambda-profile",
-    "path": "src/lambda-profile/**"
-  }
-]
+    {
+      "name": "user-info",
+      "path": "src/user-info/**",
+      "lambda_secret": "LAMBDA_FUNCTION_NAME"
+    },
+    {
+      "name": "lambda-profile",
+      "path": "src/lambda-profile/**",
+      "lambda_secret": "LAMBDA_PROFILE"
+    }
+  ]
+  
