@@ -36,7 +36,7 @@ jobs:
           # Export all filters from steps.filter.outputs to env vars
           for key in matrix ; do
             env_key="FILTER_$(echo "$key" | tr '[:lower:]-' '[:upper:]_')"
-            value="${{ steps.filter.outputs.env_key }}"
+            value="${ steps.filter.outputs.env_key }"
             export "$env_key=$value"
           done
       
