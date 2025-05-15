@@ -3,77 +3,69 @@ name: Dev Deploy Lambda
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'src/user-info/**'
-      - 'src/lambda-profile/**'
 
 jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      userInfo: ${{ steps.filter.outputs.user-info }}
-      lambdaProfile: ${{ steps.filter.outputs.lambda-profile }}
+      matrixJson: ${{ steps.export.outputs.matrixJson }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: dorny/paths-filter@v2
-      id: filter
-      with:
-        filters: |
-          user-info:
-            - 'src/user-info/**'
-          lambda-profile:
-            - 'src/lambda-profile/**'
+      - uses: actions/checkout@v4
 
-  deployUserInfo:
+      - name: Read dev_matrix.json and create filters.yml
+        id: generate-filters
+        run: |
+          echo "filters:" > filters.yml
+          jq -r '.[] | "\(.name):\n  - \(.path)"' .github/dev_matrix.json >> filters.yml
+          cat filters.yml
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: ./filters.yml
+
+      - name: Build filtered matrix from changes
+        id: export
+        run: |
+          echo "{" > matrix.json
+          echo '"matrix": [' >> matrix.json
+          jq -c '.[]' .github/dev_matrix.json | while read lambda; do
+            name=$(echo "$lambda" | jq -r '.name')
+            if [[ "${{ steps.filter.outputs[name] }}" == "true" ]]; then
+              echo "$lambda," >> matrix.json
+            fi
+          done
+          sed -i '$ s/,$//' matrix.json
+          echo "]}" >> matrix.json
+          echo "matrixJson=$(jq -c '.matrix' matrix.json)" >> $GITHUB_OUTPUT
+
+  deploy:
     needs: changes
-    if: ${{ needs.changes.outputs.userInfo == 'true' }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.changes.outputs.matrixJson) }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Install zip tool
-      uses: montudor/action-zip@v1
-      
-    - name: Create deployment package
-      run: |
-           cd src/user-info
-           zip -r ../../user-info.zip .
+      - uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Install zip tool
+        uses: montudor/action-zip@v1
 
-    - name: Deploy to Lambda
-      run: |
-        aws lambda update-function-code \
-          --function-name ${{ secrets.USER_INFO_LAMBDA_NAME }} \
-          --zip-file fileb://user-info.zip
+      - name: Package Lambda Function
+        run: |
+          cd src/${{ matrix.name }}
+          zip -r ../../${{ matrix.name }}.zip .
+          cd ../..
 
-  deployLambdaProfile:
-    needs: changes
-    if: ${{ needs.changes.outputs.lambdaProfile == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install zip tool
-      uses: montudor/action-zip@v1
-      
-    - name: Create deployment package
-      run: |
-           cd src/lambda-profile
-           zip -r ../../lambda-profile.zip .
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Configure AWS credentialss
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-
-    - name: Deploy to Lambda
-      run: |
-        aws lambda update-function-code \
-          --function-name ${{ secrets.LAMBDA_PROFILE_NAME }} \
-          --zip-file fileb://lambda-profile.zip
+      - name: Deploy to Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ secrets[matrix.lambda_secret] }} \
+            --zip-file fileb://${{ matrix.name }}.zip
