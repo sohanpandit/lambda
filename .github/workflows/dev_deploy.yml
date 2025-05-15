@@ -26,6 +26,7 @@ jobs:
         with:
           base: ${{ github.event.before }}
           filters: ./filters.yml
+
       - name: Export dorny outputs to JSON
         run: |
           echo '${{ toJSON(steps.filter.outputs) }}' > filter-outputs.json
