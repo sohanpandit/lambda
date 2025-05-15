@@ -18,8 +18,9 @@ jobs:
       - name: Generate filters.yml from matrix.json
         run: |
           echo "filters:" > filters.yml
-          jq -r '.[] | "  \(.name):\n    - '\''\(.path)'\''" .github/matrix.json >> filters.yml
+          jq -r '.[] | "  \(.name):\n    - '\''\(.path)'\''"' .github/matrix.json >> filters.yml
           cat filters.yml
+
 
       - uses: dorny/paths-filter@v3
         id: filter

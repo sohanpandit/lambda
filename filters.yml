@@ -1,5 +1,0 @@
-filters:
-  user-info:
-    - src/user-info/**
-  lambda-profile:
-    - src/lambda-profile/**
