@@ -27,17 +27,26 @@ jobs:
       - name: Build filtered matrix from changes
         id: export
         run: |
-          echo "{" > matrix.json
-          echo '"matrix": [' >> matrix.json
-          jq -c '.[]' .github/dev_matrix.json | while read lambda; do
-            name=$(echo "$lambda" | jq -r '.name')
-            if [[ "${{ steps.filter.outputs[name] }}" == "true" ]]; then
-              echo "$lambda," >> matrix.json
-            fi
-          done
-          sed -i '$ s/,$//' matrix.json
-          echo "]}" >> matrix.json
-          echo "matrixJson=$(jq -c '.matrix' matrix.json)" >> $GITHUB_OUTPUT
+            echo "{" > matrix.json
+            echo '"matrix": [' >> matrix.json
+
+            jq -c '.[]' .github/dev_matrix.json | while read lambda; do name=$(echo "$lambda" | jq -r '.name')
+              
+              # Convert name to env var style key (e.g. user-info -> FILTER_USER_INFO)
+              env_var_name="FILTER_$(echo "$name" | tr '[:lower:]-' '[:upper:]_')"
+              value="${!env_var_name}"
+
+              if [[ "$value" == "true" ]]; then
+                echo "$lambda," >> matrix.json
+              fi
+            done
+
+            # Remove the last comma to make valid JSON
+            sed -i '$ s/,$//' matrix.json
+            echo "]}" >> matrix.json
+
+            # Set output
+            echo "matrixJson=$(jq -c '.matrix' matrix.json)" >> $GITHUB_OUTPUT
 
   deploy:
     needs: changes
