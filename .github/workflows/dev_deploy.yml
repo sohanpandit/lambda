@@ -17,7 +17,7 @@ jobs:
 
       - name: Generate filters.yml from matrix.json
         run: |
-          echo "filters:" > filters.yml
+          echo filters.yml
           jq -r '.[] | "  \(.name):\n    - '\''\(.path)'\''"' .github/matrix.json >> filters.yml
           cat filters.yml
 
