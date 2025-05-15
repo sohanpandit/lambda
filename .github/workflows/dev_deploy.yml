@@ -14,11 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read dev_matrix.json and create filters.yml
+      - name: Read matrix.json and create filters.yml
         id: generate-filters
         run: |
             echo "filters:" > filters.yml
-            jq -r '.[] | "  \(.name):\n    - \(.path)"' .github/dev_matrix.json >> filters.yml
+            jq -r '.[] | "  \(.name):\n    - \(.path)"' .github/matrix.json >> filters.yml
             cat filters.yml
 
       - uses: dorny/paths-filter@v3
@@ -32,7 +32,7 @@ jobs:
             echo "{" > matrix.json
             echo '"matrix": [' >> matrix.json
 
-            jq -c '.[]' .github/dev_matrix.json | while read lambda; do name=$(echo "$lambda" | jq -r '.name')
+            jq -c '.[]' .github/matrix.json | while read lambda; do name=$(echo "$lambda" | jq -r '.name')
               
               # Convert name to env var style key (e.g. user-info -> FILTER_USER_INFO)
               env_var_name="FILTER_$(echo "$name" | tr '[:lower:]-' '[:upper:]_')"
