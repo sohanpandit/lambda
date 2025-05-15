@@ -36,7 +36,7 @@ jobs:
           jq -c '.[]' .github/dev_matrix.json | while read lambda; do
             name=$(echo "$lambda" | jq -r '.name')
             env_key="FILTER_$(echo "$name" | tr '[:lower:]-' '[:upper:]_')"
-            match="${!env_key}"
+            match="${ steps.filter.outputs.${!env_key} }"
             if [[ "$match" == "true" ]]; then
               echo "$lambda," >> matrix.json
             fi
