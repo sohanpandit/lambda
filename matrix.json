@@ -1,2 +1,4 @@
 {
 "matrix": [
+{"name":"user-info","path":"src/user-info/**","lambda_secret":"LAMBDA_FUNCTION_NAME"}
+]}

@@ -47,12 +47,12 @@ jobs:
           echo "]}" >> matrix.json
 
           echo "matrixJson=$(jq -c '.matrix' matrix.json)" >> $GITHUB_OUTPUT
-          $matrixJson
+          echo $matrixJson
 
   deploy:
     needs: filter
     runs-on: ubuntu-latest
-    if: ${{ fromJson(needs.filter.outputs.matrixJson) != '[]' }}
+    # if: ${{ fromJson(needs.filter.outputs.matrixJson) != '[]' }}
     strategy:
       matrix:
         include: ${{ fromJson(needs.filter.outputs.matrixJson) }}
