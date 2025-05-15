@@ -27,6 +27,13 @@ jobs:
         id: filter
         with:
           filters: ./filters.yml
+      
+      - name: Print dorny filter outputs
+        run: |
+          echo "Dorny filter outputs:"
+          echo "USER_INFO = ${{ steps.filter.outputs.USER_INFO }}"
+          echo "HCP_PROFILE = ${{ steps.filter.outputs.LAMBDA }}"
+
 
       - name: Build filtered matrix from changes
         id: export
