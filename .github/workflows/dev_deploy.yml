@@ -31,7 +31,7 @@ jobs:
       - name: Print dorny filter outputs
         run: |
           echo "Dorny filter outputs:"
-          echo "USER_INFO = ${{ steps.filter.outputs }}"
+          echo "USER_INFO = ${{ steps.filter }}"
           echo "HCP_PROFILE = ${{ steps.filter.outputs.user-info }}"
 
 
