@@ -26,7 +26,8 @@ jobs:
         id: filter
         with:
           base: ${{ github.event.before }}
-          filters: ./filters.yml
+          filters: | 
+            ./filters.yml
 
       - name: Export filtered matrix
         id: export
