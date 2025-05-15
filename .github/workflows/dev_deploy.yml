@@ -17,7 +17,7 @@ jobs:
 
       - name: Generate filters.yml from matrix.json
         run: |
-          echo "filters:" > filters.yml
+          echo "filters: |" > filters.yml
           jq -r '.[] | "  \(.name):\n    - '\''\(.path)'\''"' .github/matrix.json >> filters.yml
           cat filters.yml
 
@@ -26,8 +26,7 @@ jobs:
         id: filter
         with:
           base: ${{ github.event.before }}
-          filters: | 
-            ./filters.yml
+          filters: ./filters.yml
 
       - name: Export filtered matrix
         id: export
