@@ -31,8 +31,8 @@ jobs:
       - name: Print dorny filter outputs
         run: |
           echo "Dorny filter outputs:"
-          echo "USER_INFO = ${{ steps.filter.outputs.USER_INFO }}"
-          echo "HCP_PROFILE = ${{ steps.filter.outputs.LAMBDA }}"
+          echo "USER_INFO = ${{ steps.filter.outputs }}"
+          echo "HCP_PROFILE = ${{ steps.filter.outputs.user-info }}"
 
 
       - name: Build filtered matrix from changes
