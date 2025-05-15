@@ -4,7 +4,7 @@ export const handler = async (event) => {
     const response = {
       statusCode: 200,
       body: {
-        personalizedMessage: `Hey ${user}, hope you are having a great day from github testsdfdfdsvdddfddfdd23`
+        personalizedMessage: `Hey ${user}, hope you are having a great day from github testsdfdfdsffvdddfddfdd23`
       },
     };
     return response;
