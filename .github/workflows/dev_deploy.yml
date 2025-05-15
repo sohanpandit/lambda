@@ -1,91 +1,76 @@
-name: Dev Deploy Lambda
+name: Deploy Lambdas Based on Changes
 
 on:
   push:
     branches: [ main ]
     paths:
-      - 'src/**'
+      'src/**'
 
 jobs:
-  changes:
+  filter:
     runs-on: ubuntu-latest
     outputs:
       matrixJson: ${{ steps.export.outputs.matrixJson }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Read matrix.json and create filters.yml
-        id: generate-filters
+      - name: Generate filters.yml from matrix.json
         run: |
           echo "filters:" > filters.yml
           jq -r '.[] | "  \(.name):\n    - \(.path)"' .github/matrix.json >> filters.yml
-          echo "--- filters.yml content ---"
           cat filters.yml
 
-
-      - uses: dorny/paths-filter@v3
+      - name: Run paths-filter
         id: filter
+        uses: dorny/paths-filter@v3
         with:
           filters: ./filters.yml
-      
-      - name: Print dorny filter outputs
-        run: |
-          echo "Dorny filter outputs:"
-          echo "USER_INFO = ${{ steps.filter }}"
-          echo "HCP_PROFILE = ${{ steps.filter.outputs.user-info }}"
 
-
-      - name: Build filtered matrix from changes
+      - name: Export filtered matrix
         id: export
         run: |
-            echo "{" > matrix.json
-            echo '"matrix": [' >> matrix.json
+          echo "{" > matrix.json
+          echo '"matrix": [' >> matrix.json
 
-            jq -c '.[]' .github/matrix.json | while read lambda; do name=$(echo "$lambda" | jq -r '.name')
-              
-              # Convert name to env var style key (e.g. user-info -> FILTER_USER_INFO)
-              env_var_name="FILTER_$(echo "$name" | tr '[:lower:]-' '[:upper:]_')"
-              value="${!env_var_name}"
+          jq -c '.[]' .github/matrix.json | while read lambda; do
+            name=$(echo "$lambda" | jq -r '.name')
+            env_key="FILTER_$(echo "$name" | tr '[:lower:]-' '[:upper:]_')"
+            match="${!env_key}"
+            if [[ "$match" == "true" ]]; then
+              echo "$lambda," >> matrix.json
+            fi
+          done
 
-              if [[ "$value" == "true" ]]; then
-                echo "$lambda," >> matrix.json
-              fi
-            done
+          sed -i '$ s/,$//' matrix.json
+          echo "]}" >> matrix.json
 
-            # Remove the last comma to make valid JSON
-            sed -i '$ s/,$//' matrix.json
-            echo "]}" >> matrix.json
-
-            # Set output
-            echo "matrixJson=$(jq -c '.matrix' matrix.json)" >> $GITHUB_OUTPUT
+          echo "matrixJson=$(jq -c '.matrix' matrix.json)" >> $GITHUB_OUTPUT
 
   deploy:
-    needs: changes
+    needs: filter
     runs-on: ubuntu-latest
+    if: ${{ fromJson(needs.filter.outputs.matrixJson) != '[]' }}
     strategy:
       matrix:
-        include: ${{ fromJson(needs.changes.outputs.matrixJson) }}
+        include: ${{ fromJson(needs.filter.outputs.matrixJson) }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install zip tool
-        uses: montudor/action-zip@v1
-
-      - name: Package Lambda Function
+      - name: Package Lambda
         run: |
           cd src/${{ matrix.name }}
           zip -r ../../${{ matrix.name }}.zip .
-          cd ../..
 
-      - name: Configure AWS credentials
+      - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy to Lambda
+      - name: Deploy Lambda
         run: |
           aws lambda update-function-code \
-            --function-name ${{ secrets[matrix.lambda_secret] }} \
+            --function-name ${{ secrets[matrix.lambda] }} \
             --zip-file fileb://${{ matrix.name }}.zip
