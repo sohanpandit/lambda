@@ -42,12 +42,12 @@ jobs:
           
           echo "$matrix_json" > matrix.json
           echo "matrixJson=$matrix_json" >> $GITHUB_OUTPUT
-          echo matrixJson
+          echo $matrixJson
+          cat  matrix.json
 
   deploy:
     needs: filter
     runs-on: ubuntu-latest
-    # if: ${{ fromJson(needs.filter.outputs.matrixJson) != '[]' }}
     strategy:
       matrix:
         include: ${{ fromJson(needs.filter.outputs.matrixJson) }}
