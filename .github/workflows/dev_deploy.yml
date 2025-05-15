@@ -47,7 +47,7 @@ jobs:
           echo "]}" >> matrix.json
 
           echo "matrixJson=$(jq -c '.matrix' matrix.json)" >> $GITHUB_OUTPUT
-          cat matrixJson
+          $matrixJson
 
   deploy:
     needs: filter
