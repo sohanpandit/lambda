@@ -19,7 +19,7 @@ jobs:
         run: |
           # echo "filters:" > filters.yml
           # jq -r '.[] | "  \(.name):\n    - \(.path)"' .github/matrix.json >> filters.yml
-          # echo "--- filters.yml content ---"
+           echo "--- filters.yml content ---"
           # cat filters.yml
 
 
