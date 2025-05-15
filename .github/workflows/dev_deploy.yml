@@ -17,10 +17,10 @@ jobs:
       - name: Read matrix.json and create filters.yml
         id: generate-filters
         run: |
-          # echo "filters:" > filters.yml
-          # jq -r '.[] | "  \(.name):\n    - \(.path)"' .github/matrix.json >> filters.yml
-           echo "--- filters.yml content ---"
-          # cat filters.yml
+          echo "filters:" > filters.yml
+          jq -r '.[] | "  \(.name):\n    - \(.path)"' .github/matrix.json >> filters.yml
+          echo "--- filters.yml content ---"
+          cat filters.yml
 
 
       - uses: dorny/paths-filter@v3
