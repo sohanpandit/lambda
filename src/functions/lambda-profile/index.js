@@ -106,7 +106,7 @@ export const handler = async (event) => {
 
     const hcpData = await fetchUserData(hcpApiUrl, bearerToken, npid);
     if (!hcpData) {
-      throw new Error('Failed to fetch HCP dataa');
+      throw new Error('Failed to fetch HCP data');
     }
 
     return {
