@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      'src/**'
+      'src/functions/**'
 
 jobs:
   filter:
@@ -56,7 +56,7 @@ jobs:
 
       - name: Package Lambda
         run: |
-          cd src/${{ matrix.name }}
+          cd src/functions/${{ matrix.name }}
           zip -r ../../${{ matrix.name }}.zip .
 
       - name: Configure AWS
