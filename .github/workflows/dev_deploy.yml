@@ -69,5 +69,5 @@ jobs:
       - name: Deploy Lambda
         run: |
           aws lambda update-function-code \
-            --function-name ${{ secrets[matrix.lambda] }} \
+            --function-name ${{ secrets[matrix.lambda_ARN] }} \
             --zip-file fileb://${{ matrix.name }}.zip
