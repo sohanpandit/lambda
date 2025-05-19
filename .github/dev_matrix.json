@@ -7,7 +7,7 @@
     {
       "name": "lambda-profile",
       "path": "src/lambda-profile/**",
-      "lambda_secret": "LAMBDA_PROFILE"
+      "lambda_secret": "arn:aws:lambda:eu-north-1:396383602649:function:lambda-profile"
     }
-  ]
+]
   

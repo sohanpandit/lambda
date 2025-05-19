@@ -1,0 +1,8 @@
+[
+    {
+      "name": "veeva-auth",
+      "path": "src/layers/veeva-auth/**",
+      "lambda_secret": "LAMBDA_FUNCTION_NAME"
+    }
+]
+  

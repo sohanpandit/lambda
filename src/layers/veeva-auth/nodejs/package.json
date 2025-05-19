@@ -1,0 +1,13 @@
+{
+  "name": "veeva-auth-layer",
+  "version": "1.0.0",
+  "description": "Lambda layer for Veeva authentication service",
+  "main": "veeva-auth.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  },
+  "type": "module"
+}

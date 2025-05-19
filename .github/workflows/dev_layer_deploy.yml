@@ -1,0 +1,73 @@
+name: Deploy Lambdas Based on Changes
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      'src/layers/**'
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    outputs:
+      matrixJson: ${{ steps.export.outputs.matrixJson }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Generate filters.yml from matrix.json
+        run: |
+          echo filters.yml
+          jq -r '.[] | "  \(.name):\n    - '\''\(.path)'\''"' .github/dev_matrix.json >> filters.yml
+          cat filters.yml
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ github.event.before }}
+          filters: ./filters.yml
+
+      - name: Export dorny outputs to JSON
+        run: |
+          echo '${{ toJSON(steps.filter.outputs) }}' > filter-outputs.json
+          cat filter-outputs.json
+
+      - name: Create filtered matrix from dev_matrix.json
+        id: export
+        run: |
+          matrix_json=$(jq -c --slurpfile outputs filter-outputs.json '
+            def has_changed($outputs): 
+              ($outputs[0] | with_entries(select(.value == "true")) | keys_unsorted) // [];
+            [.[] | select(.name as $n | has_changed($outputs) | index($n))] // []' .github/dev_matrix.json)
+          
+          echo "$matrix_json" > matrix.json
+          echo "matrixJson=$matrix_json" >> $GITHUB_OUTPUT
+          echo $matrixJson
+          cat  matrix.json
+
+  deploy:
+    needs: filter
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.filter.outputs.matrixJson) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package Lambda
+        run: |
+          cd src/${{ matrix.name }}
+          zip -r ../../${{ matrix.name }}.zip .
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ secrets[matrix.lambda] }} \
+            --zip-file fileb://${{ matrix.name }}.zip
